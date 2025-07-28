@@ -1,0 +1,15 @@
+const express = require("express");
+const router = express.Router();
+const imageRoute = require("./image.routes");
+const auth = require("./auth.route");
+const address = require("./address.routes");
+const product = require("./product.routes");
+const like = require("./wishlist.routes");
+const order = require("./order.routes");
+router.use("/image", imageRoute);
+router.use("/auth", auth);
+router.use("/address", address);
+router.use("/product", product);
+router.use("/wishlist", like);
+router.use("/order", order);
+module.exports = router;
