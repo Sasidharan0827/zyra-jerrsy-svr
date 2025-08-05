@@ -1,7 +1,7 @@
 const Order = require("../models/order.model");
 const Product = require("../models/product.model");
 
-//  CREATE Order
+// CREATE Order
 const createOrder = async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -23,20 +23,7 @@ const createOrder = async (req, res) => {
       if (!product)
         return res.status(404).json({ message: "Product not found" });
 
-      const sizeData = product.sizes.find((s) => s.size === item.size);
-      if (!sizeData || sizeData.stock < item.quantity) {
-        return res
-          .status(400)
-          .json({ message: `Insufficient stock for size ${item.size}` });
-      }
-
       totalAmount += product.price * item.quantity;
-
-      // Update stock
-      sizeData.stock -= item.quantity;
-      if (sizeData.stock < 0) sizeData.stock = 0;
-
-      await product.save();
     }
 
     const newOrder = new Order({
@@ -45,6 +32,7 @@ const createOrder = async (req, res) => {
       totalAmount,
       paymentMethod,
     });
+
     await newOrder.save();
 
     res
@@ -55,31 +43,31 @@ const createOrder = async (req, res) => {
   }
 };
 
-//  READ - Get all orders
+// READ - Get all orders
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate("userId")
       .populate("products.productId");
+    // If no orders exist, let the client know
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: "No orders placed yet" });
+    }
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-//  READ - Get user orders
+// READ - Get user orders
 const getOrdersByUser = async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.params.userId }).populate(
       "products.productId"
     );
 
-    // Filter only the ordered size from the product sizes
     const filteredOrders = orders.map((order) => {
       const filteredProducts = order.products.map((item) => {
-        const { size } = item;
-        const selectedSize = item.productId.sizes.find((s) => s.size === size);
-
         return {
           productId: {
             _id: item.productId._id,
@@ -92,9 +80,8 @@ const getOrdersByUser = async (req, res) => {
             category: item.productId.category,
             rating: item.productId.rating,
           },
-          size,
+          size: item.size,
           quantity: item.quantity,
-          stock: selectedSize ? selectedSize.stock : null,
         };
       });
 
@@ -115,7 +102,7 @@ const getOrdersByUser = async (req, res) => {
   }
 };
 
-//  UPDATE - Update order status or payment
+// UPDATE - Update order status or payment
 const updateOrder = async (req, res) => {
   try {
     const orderId = req.params.orderId;
@@ -141,7 +128,6 @@ const cancelOrder = async (req, res) => {
   try {
     const { userId, orderId } = req.params;
 
-    // Find order by user and ID
     const order = await Order.findOne({ _id: orderId, userId });
 
     if (!order) {
@@ -150,12 +136,10 @@ const cancelOrder = async (req, res) => {
         .json({ message: "Order not found or unauthorized" });
     }
 
-    // Check if already cancelled
     if (order.status === "Cancelled") {
       return res.status(400).json({ message: "Order is already cancelled" });
     }
 
-    // Check if more than 1 day has passed
     const orderTime = new Date(order.createdAt);
     const now = new Date();
     const timeDiff = (now - orderTime) / (1000 * 60 * 60); // in hours
@@ -166,31 +150,16 @@ const cancelOrder = async (req, res) => {
         .json({ message: "Cancellation window expired (1 day limit)" });
     }
 
-    // ✅ Restore stock for each product
-    for (const item of order.products) {
-      const product = await Product.findById(item.productId);
-      if (product) {
-        const sizeData = product.sizes.find((s) => s.size === item.size);
-        if (sizeData) {
-          sizeData.stock += item.quantity;
-        }
-        await product.save();
-      }
-    }
-
-    // Update order status to Cancelled
     order.status = "Cancelled";
     await order.save();
 
-    res
-      .status(200)
-      .json({ message: "Order cancelled and stock restored", order });
+    res.status(200).json({ message: "Order cancelled successfully", order });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-//  DELETE - Cancel/Delete an order
+// DELETE - Cancel/Delete an order
 const deleteOrder = async (req, res) => {
   try {
     const orderId = req.params.orderId;

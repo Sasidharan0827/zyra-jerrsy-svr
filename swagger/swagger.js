@@ -1,9 +1,7 @@
 const swaggerJsdoc = require("swagger-jsdoc");
 const dotenv = require("dotenv");
 dotenv.config();
-const exampleRouter = require("./path/to/your/router/file");
 
-app.use("/api", exampleRouter);
 const options = {
   definition: {
     openapi: "3.0.0",
@@ -18,7 +16,7 @@ const options = {
       },
     ],
   },
-  apis: ["./routes/zyra/*.js"], // Ensure this path is correct
+  apis: ["./routes/*.js"], // Ensure this path is correct
 };
 
 const swaggerSpec = swaggerJsdoc(options);

@@ -31,18 +31,26 @@ const removeFromWishlist = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 // Get Wishlist for User
 const getWishlist = async (req, res) => {
   try {
     const { userId } = req.params;
 
     const wishlist = await Wishlist.find({ userId }).populate("productId");
-    res.json(wishlist);
+
+    // Filter out items with null productId (e.g., product deleted)
+    const validWishlist = wishlist.filter((item) => item.productId !== null);
+
+    if (!validWishlist || validWishlist.length === 0) {
+      return res.status(404).json({ message: "Wishlist is empty" });
+    }
+
+    res.json(validWishlist);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 module.exports = {
   addToWishlist,
   removeFromWishlist,

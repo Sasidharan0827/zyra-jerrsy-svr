@@ -4,7 +4,8 @@ const cors = require("cors");
 const approute = require("./routes/app.routes");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
-
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger/swagger.js");
 // Load environment variables
 dotenv.config();
 
@@ -15,7 +16,8 @@ const app = express();
 app.use(express.json());
 //looger
 app.use(morgan("dev"));
-
+// Swagger UI route (add this before your other routes)
+app.use("/api", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Simple route
 app.get("/", (req, res) => {
   res.send(`Welcome to ${process.env.APP_NAME}`);
@@ -41,9 +43,9 @@ mongoose
     console.log("✅ MongoDB Atlas connected");
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-    console.log(
-      `📚 API Documentation available at http://localhost:${PORT}/api`
-    );
+    // console.log(
+    //   `📚 API Documentation available at http://localhost:${PORT}/api`
+    // );
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);

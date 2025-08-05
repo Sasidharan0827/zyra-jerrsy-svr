@@ -1,6 +1,7 @@
 const Product = require("../models/product.model");
 const cloudinary = require("../cloudinary/cloudinary ");
 const fs = require("fs");
+const Menu = require("../models/menu.model");
 
 // Create product (admin only)
 const createProduct = async (req, res) => {
@@ -21,22 +22,15 @@ const createProduct = async (req, res) => {
     }
 
     // Validate sizes array
-    if (
-      !Array.isArray(sizes) ||
-      !sizes.every((item) => item.size && item.quantity != null)
-    ) {
+    if (!Array.isArray(sizes) || !sizes.every((item) => item.size != null)) {
       return res.status(400).json({ message: "Invalid sizes format" });
     }
 
-    // Initialize stock equal to quantity
+    // Cleaned size structure (no stock)
     sizes = sizes.map((item) => ({
       size: item.size,
-      quantity: item.quantity,
-      stock: item.stock != null ? item.stock : item.quantity, // default stock = quantity
+      // quantity: item.quantity,
     }));
-
-    // Determine if the product is out of stock
-    const isOutOfStock = sizes.every((s) => s.stock === 0);
 
     // Create new product
     const product = new Product({
@@ -46,11 +40,11 @@ const createProduct = async (req, res) => {
       description: req.body.description,
       price: req.body.price,
       rating: req.body.rating,
-      category: req.body.category,
-      brand: req.body.brand,
+      subMenuId: req.body.subMenuId,
+      menuId: req.body.menuId,
       imageUrl: result.secure_url,
       sizes: sizes,
-      isOutOfStock: isOutOfStock,
+      color: req.body.color,
     });
 
     const savedProduct = await product.save();
@@ -64,6 +58,11 @@ const createProduct = async (req, res) => {
 const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find();
+
+    if (!products || products.length === 0) {
+      return res.status(404).json({ message: "No products found" });
+    }
+
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -82,10 +81,9 @@ const getProductById = async (req, res) => {
 };
 
 // Update product
-
 const updateProduct = async (req, res) => {
   try {
-    // const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -97,7 +95,10 @@ const updateProduct = async (req, res) => {
     product.description = req.body.description;
     product.category = req.body.category;
     product.price = req.body.price;
+    product.subMenuId = req.body.subMenuId;
+    product.menuId = req.body.menuId;
     product.rating = req.body.rating;
+    product.color = req.body.color;
 
     // Update image if file is uploaded
     if (req.file) {
@@ -106,9 +107,13 @@ const updateProduct = async (req, res) => {
       product.imageUrl = result.secure_url;
     }
 
-    // Parse and update sizes if sent (as JSON string in form-data)
+    // Parse and update sizes if sent
     if (req.body.sizes) {
-      product.sizes = JSON.parse(req.body.sizes);
+      const sizes = JSON.parse(req.body.sizes);
+      product.sizes = sizes.map((item) => ({
+        size: item.size,
+        // quantity: item.quantity,
+      }));
     }
 
     await product.save();
@@ -129,11 +134,91 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+// Get products by menu
+const getProductsByMenu = async (req, res) => {
+  try {
+    const { menuId } = req.params;
 
+    const products = await Product.find({ menuId });
+
+    if (!products || products.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No products found under this menu." });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching products by menu:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+// Get products by submenu
+const getProductsBySubMenu = async (req, res) => {
+  try {
+    const { subMenuId } = req.params;
+
+    const products = await Product.find({ subMenuId });
+
+    if (!products || products.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No products found under this submenu." });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching products by submenu:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+const searchProducts = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query || query.trim() === "") {
+      return res.status(400).json({ message: "Search query is required." });
+    }
+
+    // Split words for multi-keyword search
+    const words = query.trim().split(/\s+/);
+
+    // Create regex array to search for each word in multiple fields
+    const regexFilters = words.map((word) => {
+      const regex = new RegExp(word, "i"); // case-insensitive
+      return {
+        $or: [
+          { name: regex },
+          { heading: regex },
+          { subheading: regex },
+          { description: regex },
+        ],
+      };
+    });
+
+    const products = await Product.find({
+      $and: regexFilters,
+    });
+
+    if (!products.length) {
+      return res.status(404).json({ message: "No matching products found." });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error searching products:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
 module.exports = {
   createProduct,
   getAllProducts,
   getProductById,
   updateProduct,
   deleteProduct,
+  getProductsByMenu,
+  getProductsBySubMenu,
+  searchProducts, //serach
 };
