@@ -44,7 +44,7 @@ const createProduct = async (req, res) => {
       menuId: req.body.menuId,
       imageUrl: result.secure_url,
       sizes: sizes,
-      color: req.body.color,
+      // color: req.body.color,
     });
 
     const savedProduct = await product.save();
@@ -98,7 +98,7 @@ const updateProduct = async (req, res) => {
     product.subMenuId = req.body.subMenuId;
     product.menuId = req.body.menuId;
     product.rating = req.body.rating;
-    product.color = req.body.color;
+    // product.color = req.body.color;
 
     // Update image if file is uploaded
     if (req.file) {

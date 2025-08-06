@@ -1,9 +1,15 @@
 const Wishlist = require("../models/wishlist.model");
-
+const Product = require("../models/product.model");
 // Add to Wishlist
+
 const addToWishlist = async (req, res) => {
   try {
     const { userId, productId } = req.params;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
     const exists = await Wishlist.findOne({ userId, productId });
     if (exists) {
@@ -38,10 +44,17 @@ const getWishlist = async (req, res) => {
 
     const wishlist = await Wishlist.find({ userId }).populate("productId");
 
-    // Filter out items with null productId (e.g., product deleted)
+    // Filter valid
     const validWishlist = wishlist.filter((item) => item.productId !== null);
 
-    if (!validWishlist || validWishlist.length === 0) {
+    // Auto-remove broken ones
+    const invalidItems = wishlist.filter((item) => item.productId === null);
+    const invalidIds = invalidItems.map((item) => item._id);
+    if (invalidIds.length > 0) {
+      await Wishlist.deleteMany({ _id: { $in: invalidIds } });
+    }
+
+    if (validWishlist.length === 0) {
       return res.status(404).json({ message: "Wishlist is empty" });
     }
 

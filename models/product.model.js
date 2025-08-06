@@ -24,7 +24,7 @@ const productSchema = new mongoose.Schema({
   description: { type: String },
   imageUrl: { type: String },
   sizes: [sizeSchema],
-  color: { type: String },
+  // color: { type: String },
   // isOutOfStock: { type: Boolean, default: false },
 });
 

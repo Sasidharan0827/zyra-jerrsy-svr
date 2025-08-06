@@ -4,21 +4,29 @@ const jwt = require("jsonwebtoken");
 const Address = require("../models/address.model");
 const Wishlist = require("../models/wishlist.model");
 const Order = require("../models/order.model");
+const otpStore = new Map();
+// Generate 6-digit OTP
+const generateOTP = () =>
+  Math.floor(100000 + Math.random() * 900000).toString();
 
 const sendOTP = async (req, res) => {
   const { phone } = req.body;
 
+  const otp = generateOTP();
+
+  // Store OTP temporarily (replace with Redis or DB in production)
+  otpStore.set(phone, { otp, expiresAt: Date.now() + 5 * 60 * 1000 }); // 5 minutes expiry
+
   try {
-    const verification = await twilioClient.verify
-      .services(process.env.TWILIO_VERIFY_SID)
-      .verifications.create({
-        to: `+91${phone}`, // or use full number with +country code
-        channel: "sms",
-      });
+    const message = await twilioClient.messages.create({
+      body: ` 🔖Your Zyra  Account Verification  OTP is: ${otp}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: `+91${phone}`,
+    });
 
     res
       .status(200)
-      .json({ message: "OTP sent successfully", sid: verification.sid });
+      .json({ message: "OTP sent successfully", sid: message.sid });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -27,38 +35,37 @@ const sendOTP = async (req, res) => {
 const verifyOTP = async (req, res) => {
   const { phone, code } = req.body;
 
+  const data = otpStore.get(phone);
+
+  if (!data || Date.now() > data.expiresAt) {
+    return res.status(400).json({ message: "OTP expired or not found" });
+  }
+
+  if (data.otp !== code) {
+    return res.status(400).json({ message: "Invalid OTP" });
+  }
+
+  // OTP is valid
+  otpStore.delete(phone); // Optional: clean up used OTP
+
   try {
-    const verificationCheck = await twilioClient.verify
-      .services(process.env.TWILIO_VERIFY_SID)
-      .verificationChecks.create({
-        to: `+91${phone}`,
-        code,
-      });
-
-    if (verificationCheck.status === "approved") {
-      // Save or find user
-      let user = await User.findOne({ phone });
-      if (!user) {
-        user = await User.create({ phone });
-      }
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { id: user._id, phone: user.phone },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "7d",
-        }
-      );
-
-      return res.status(200).json({ message: "OTP verified", token, user });
-    } else {
-      return res.status(400).json({ message: "Invalid OTP" });
+    let user = await User.findOne({ phone });
+    if (!user) {
+      user = await User.create({ phone });
     }
+
+    const token = jwt.sign(
+      { id: user._id, phone: user.phone },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.status(200).json({ message: "OTP verified", token, user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
