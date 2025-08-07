@@ -10,13 +10,14 @@ const menuRoute = require("./menu.routes");
 const bannerRoute = require("./banner.routes");
 
 const vedio = require("./video.routes");
+const authVerify = require("../middlewares/authverify");
 //---------------------//
 router.use("/image", imageRoute);
 router.use("/auth", auth);
-router.use("/address", address);
+router.use("/address", authVerify, address);
 router.use("/product", product);
-router.use("/wishlist", like);
-router.use("/order", order);
+router.use("/wishlist", authVerify, like);
+router.use("/order", authVerify, order);
 router.use("/menu", menuRoute);
 router.use("/banners", bannerRoute);
 router.use("/video", vedio);

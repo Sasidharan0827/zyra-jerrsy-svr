@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const orderController = require("../controllers/order.controller");
-
+const authVerify = require("../middlewares/authverify");
 // CREATE
 router.post("/create/:userId", orderController.createOrder);
 
@@ -15,6 +15,10 @@ router.put("/:orderId", orderController.updateOrder);
 // DELETE
 router.delete("/:orderId", orderController.deleteOrder);
 //CANCEL
-router.patch("/cancel/:userId/:orderId", orderController.cancelOrder);
+router.patch(
+  "/cancel/:userId/:orderId",
+
+  orderController.cancelOrder
+);
 
 module.exports = router;

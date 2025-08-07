@@ -6,11 +6,12 @@ const mongoose = require("mongoose");
 const morgan = require("morgan");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger/swagger.js");
+const cookieParser = require("cookie-parser");
 // Load environment variables
 dotenv.config();
 
 const app = express();
-
+app.use(cookieParser());
 // Middleware
 
 app.use(express.json());
@@ -30,7 +31,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: allowedOrigins,
-    // credentials: true, // ✅ if you're sending cookies or tokens
+    credentials: true, // ✅ if you're sending cookies or tokens
   })
 );
 // Use router

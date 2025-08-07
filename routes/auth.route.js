@@ -8,11 +8,12 @@ const {
   deleteUser,
   getUserById,
 } = require("../controllers/auth.controller");
+const authVerify = require("../middlewares/authverify");
 
 router.post("/send", sendOTP);
 router.post("/verify", verifyOTP);
-router.get("/users", getAllUsers);
-router.put("/users/:id", updateUser);
-router.delete("/users/:id", deleteUser);
-router.get("/users/:id", getUserById);
+router.get("/users", authVerify, getAllUsers);
+router.put("/users/:id", authVerify, updateUser);
+router.delete("/users/:id", authVerify, deleteUser);
+router.get("/users/:id", authVerify, getUserById);
 module.exports = router;

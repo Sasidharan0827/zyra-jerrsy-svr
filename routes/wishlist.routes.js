@@ -5,7 +5,7 @@ const {
   removeFromWishlist,
   getWishlist,
 } = require("../controllers/wishlist.controller");
-
+const authVerify = require("../middlewares/authverify");
 // Add to wishlist via params
 router.post("/:userId/:productId", addToWishlist);
 
