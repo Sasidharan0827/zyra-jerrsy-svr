@@ -8,6 +8,7 @@ const like = require("./wishlist.routes");
 const order = require("./order.routes");
 const menuRoute = require("./menu.routes");
 const bannerRoute = require("./banner.routes");
+const designtemplete = require("./designtemplete.routes");
 
 const vedio = require("./video.routes");
 const authVerify = require("../middlewares/authverify");
@@ -21,4 +22,5 @@ router.use("/order", authVerify, order);
 router.use("/menu", menuRoute);
 router.use("/banners", bannerRoute);
 router.use("/video", vedio);
+router.use("/design", designtemplete);
 module.exports = router;

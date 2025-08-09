@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 });
 const allowedOrigins = [
   // "https://zyra.in", // live frontend (Angular/React/Vue etc.)
-  "http://localhost:4200", // optional: for local development
+  "http://localhost:3000", // optional: for local development
 ];
 
 app.use(
@@ -42,7 +42,7 @@ mongoose
   .connect(process.env.DB) // No need for options
   .then(() => {
     console.log("✅ MongoDB Atlas connected");
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
     // console.log(
     //   `📚 API Documentation available at http://localhost:${PORT}/api`
