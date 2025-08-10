@@ -35,7 +35,7 @@ app.use(
   })
 );
 // Use router
-app.use("/zyra", approute);
+app.use("/zaira", approute);
 // Start server
 
 mongoose
