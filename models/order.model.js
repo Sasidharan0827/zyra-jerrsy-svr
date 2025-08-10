@@ -17,6 +17,14 @@ const orderSchema = new mongoose.Schema({
       quantity: Number,
     },
   ],
+  designPrint: {
+    type: Boolean,
+    default: false,
+  },
+  designId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "DesignTemplate",
+  },
   totalAmount: Number,
   paymentMethod: {
     type: String,

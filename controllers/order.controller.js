@@ -1,11 +1,12 @@
 const Order = require("../models/order.model");
 const Product = require("../models/product.model");
-
+const DesignTemplate = require("../models/designTemplate ");
+const cloudinary = require("../cloudinary/cloudinary ");
 // CREATE Order
 const createOrder = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const { products, paymentMethod } = req.body;
+    const { products, paymentMethod, designPrint, designId } = req.body;
 
     if (
       !userId ||
@@ -26,18 +27,30 @@ const createOrder = async (req, res) => {
       totalAmount += product.price * item.quantity;
     }
 
+    // Add ₹150 print charge if designPrint is true
+    if (designPrint) {
+      totalAmount += 150;
+    }
+
     const newOrder = new Order({
       userId,
       products,
+      designPrint,
+      designId: designPrint ? designId : null,
       totalAmount,
       paymentMethod,
     });
 
     await newOrder.save();
 
+    // Return populated design details if available
+    const populatedOrder = await Order.findById(newOrder._id)
+      .populate("products.productId")
+      .populate("designId");
+
     res
       .status(201)
-      .json({ message: "Order placed successfully", order: newOrder });
+      .json({ message: "Order placed successfully", order: populatedOrder });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -48,8 +61,9 @@ const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate("userId")
-      .populate("products.productId");
-    // If no orders exist, let the client know
+      .populate("products.productId")
+      .populate("designId");
+
     if (!orders || orders.length === 0) {
       return res.status(404).json({ message: "No orders placed yet" });
     }
@@ -62,33 +76,40 @@ const getAllOrders = async (req, res) => {
 // READ - Get user orders
 const getOrdersByUser = async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.params.userId }).populate(
-      "products.productId"
-    );
+    const orders = await Order.find({ userId: req.params.userId })
+      .populate("products.productId")
+      .populate("designId");
 
     const filteredOrders = orders.map((order) => {
-      const filteredProducts = order.products.map((item) => {
-        return {
-          productId: {
-            _id: item.productId._id,
-            name: item.productId.name,
-            imageUrl: item.productId.imageUrl,
-            price: item.productId.price,
-            description: item.productId.description,
-            heading: item.productId.heading,
-            subheading: item.productId.subheading,
-            category: item.productId.category,
-            rating: item.productId.rating,
-          },
-          size: item.size,
-          quantity: item.quantity,
-        };
-      });
+      const filteredProducts = order.products.map((item) => ({
+        productId: {
+          _id: item.productId._id,
+          name: item.productId.name,
+          imageUrl: item.productId.imageUrl,
+          price: item.productId.price,
+          description: item.productId.description,
+          heading: item.productId.heading,
+          subheading: item.productId.subheading,
+          category: item.productId.category,
+          rating: item.productId.rating,
+        },
+        size: item.size,
+        quantity: item.quantity,
+      }));
 
       return {
         _id: order._id,
         userId: order.userId,
         products: filteredProducts,
+        designPrint: order.designPrint,
+        design: order.designId
+          ? {
+              _id: order.designId._id,
+              name: order.designId.name,
+              imageUrl: order.designId.imageUrl,
+              category: order.designId.category,
+            }
+          : null,
         totalAmount: order.totalAmount,
         paymentMethod: order.paymentMethod,
         status: order.status,
@@ -106,13 +127,18 @@ const getOrdersByUser = async (req, res) => {
 const updateOrder = async (req, res) => {
   try {
     const orderId = req.params.orderId;
-    const { status, paymentMethod } = req.body;
+    const { status, paymentMethod, designPrint, designId } = req.body;
 
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { status, paymentMethod },
-      { new: true }
-    );
+    const updateData = { status, paymentMethod };
+
+    if (typeof designPrint === "boolean") updateData.designPrint = designPrint;
+    if (designId) updateData.designId = designId;
+
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, {
+      new: true,
+    })
+      .populate("products.productId")
+      .populate("designId");
 
     if (!updatedOrder)
       return res.status(404).json({ message: "Order not found" });

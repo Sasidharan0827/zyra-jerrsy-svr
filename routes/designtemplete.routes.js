@@ -1,9 +1,10 @@
 // routes/designTemplateRoutes.js
 const express = require("express");
-
-const router = express.Router();
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+const router = express.Router();
+// Store file in memory so we can stream it directly to Cloudinary
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 const {
   createTemplate,
