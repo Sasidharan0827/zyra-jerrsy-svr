@@ -2,6 +2,8 @@
 const Banner = require("../models/banner.model");
 const fs = require("fs");
 const cloudinary = require("../cloudinary/cloudinary ");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 // 🔹 Create Banner
 const createBanner = async (req, res) => {
   try {
@@ -15,7 +17,7 @@ const createBanner = async (req, res) => {
       title: req.body.title,
       type: req.body.type,
       link: req.body.link,
-      imageUrl: result.secure_url,
+      image: result.secure_url,
     });
 
     const saved = await banner.save();
@@ -81,11 +83,30 @@ const deleteBanner = async (req, res) => {
   }
 };
 
+// Get banners by type
+const getBannersByType = async (req, res) => {
+  try {
+    const { type } = req.params;
+
+    const banners = await Banner.find({ type });
+    if (banners.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No banners found for this type" });
+    }
+
+    res.json(banners);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // Export all functions
 module.exports = {
   createBanner,
   getBanners,
   getBannerById,
   updateBanner,
+  getBannersByType,
   deleteBanner,
 };

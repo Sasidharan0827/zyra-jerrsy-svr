@@ -1,4 +1,5 @@
-const Menu = require("../models/menu.model");
+const { Menu, SubMenu } = require("../models/menu.model");
+
 const cloudinary = require("../cloudinary/cloudinary ");
 const fs = require("fs");
 // Create a new main menu with optional submenus

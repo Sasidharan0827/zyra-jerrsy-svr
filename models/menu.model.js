@@ -12,8 +12,14 @@ const MenuSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  subMenus: [SubMenuSchema],
+  subMenus: {
+    type: [SubMenuSchema],
+    default: [], // <-- ensures subMenus is never undefined
+  },
 });
 
-module.exports = mongoose.model("Menu", MenuSchema);
-module.exports = mongoose.model("SubMenu", SubMenuSchema);
+const Menu = mongoose.model("Menu", MenuSchema);
+const SubMenu = mongoose.model("SubMenu", SubMenuSchema);
+
+// Export both in an object
+module.exports = { Menu, SubMenu };
