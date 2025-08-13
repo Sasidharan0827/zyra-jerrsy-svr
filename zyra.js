@@ -25,7 +25,8 @@ app.get("/", (req, res) => {
 });
 const allowedOrigins = [
   // "https://zyra.in", // live frontend (Angular/React/Vue etc.)
-  "http://localhost:3000", // optional: for local development
+  "http://localhost:3000",
+  "http://localhost:4200",
 ];
 
 app.use(
