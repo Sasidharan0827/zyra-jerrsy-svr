@@ -44,6 +44,9 @@ const createProduct = async (req, res) => {
       menuId: req.body.menuId,
       imageUrl: result.secure_url,
       sizes: sizes,
+      isTrending: req.body.isTrending || false,
+      isMainpage: req.body.isMainpage || false,
+
       // color: req.body.color,
     });
 
@@ -98,6 +101,8 @@ const updateProduct = async (req, res) => {
     product.subMenuId = req.body.subMenuId;
     product.menuId = req.body.menuId;
     product.rating = req.body.rating;
+    product.isTrending = req.body.isTrending || false;
+    product.isMainpage = req.body.isMainpage || false;
     // product.color = req.body.color;
 
     // Update image if file is uploaded
@@ -212,6 +217,54 @@ const searchProducts = async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 };
+
+// GET - Trending products
+const getTrendingProducts = async (req, res) => {
+  try {
+    const trendingProducts = await Product.find({ isTrending: true })
+      .populate("menuId")
+      .populate("subMenuId");
+
+    if (!trendingProducts.length) {
+      return res.status(404).json({ message: "No trending products found" });
+    }
+
+    res.status(200).json(trendingProducts);
+  } catch (error) {
+    console.error("Error fetching trending products:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// GET - Products by menuId & isMainpage = true
+const getMainpageProductsBySubMenuId = async (req, res) => {
+  try {
+    const { subMenuId } = req.params; // subMenuId will come from the route
+
+    if (!subMenuId) {
+      return res.status(400).json({ message: "subMenuId is required" });
+    }
+
+    const products = await Product.find({
+      subMenuId: subMenuId,
+      isMainpage: true,
+    })
+      .populate("menuId")
+      .populate("subMenuId");
+
+    if (!products.length) {
+      return res
+        .status(404)
+        .json({ message: "No mainpage products found for this submenu" });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching mainpage products by submenu:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -220,5 +273,7 @@ module.exports = {
   deleteProduct,
   getProductsByMenu,
   getProductsBySubMenu,
-  searchProducts, //serach
+  searchProducts,
+  getTrendingProducts,
+  getMainpageProductsBySubMenuId,
 };
