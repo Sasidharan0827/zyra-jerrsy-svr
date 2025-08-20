@@ -20,14 +20,13 @@ const uploadVideo = async (req, res) => {
     });
 
     const video = await Video.create({
-      name: req.body.name,
+      title: req.body.title,
       videoUrl: result.secure_url,
-      cloudinaryId: result.public_id,
     });
 
     res.status(201).json({
       _id: video._id,
-      name: video.name,
+      title: video.title,
       videoUrl: video.videoUrl,
       createdAt: video.createdAt,
     });
@@ -65,9 +64,9 @@ const updateVideo = async (req, res) => {
       folder: "zyra_videos",
     });
 
-    video.name = req.body.name || video.name;
+    video.title = req.body.title || video.title;
     video.videoUrl = result.secure_url;
-    video.cloudinaryId = result.public_id;
+
     await video.save();
 
     res.json(video);

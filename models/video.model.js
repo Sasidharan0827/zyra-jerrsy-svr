@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const videoSchema = new mongoose.Schema(
   {
-    name: {
+    title: {
       type: String,
       required: true,
     },
@@ -10,14 +10,8 @@ const videoSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    cloudinaryId: {
-      type: String,
-      required: true,
-    },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Video", videoSchema);

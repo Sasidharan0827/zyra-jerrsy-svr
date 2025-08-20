@@ -5,6 +5,7 @@ const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 router.get("/search", productController.searchProducts); //search
 router.get("/trending", productController.getTrendingProducts); //trending
+router.get("/trending/by-menu", productController.trendingProductsByMenu);
 router.post("/", upload.single("image"), productController.createProduct);
 router.get("/", productController.getAllProducts);
 router.get("/:id", productController.getProductById);

@@ -264,6 +264,28 @@ const getMainpageProductsBySubMenuId = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+const trendingProductsByMenu = async (req, res) => {
+  try {
+    const { menuId, subMenuId } = req.query; // read from query params
+
+    let filter = {};
+    if (menuId) filter.menuId = menuId;
+    if (subMenuId) filter.subMenuId = subMenuId;
+
+    const products = await Product.find(filter)
+      .populate("menuId")
+      .populate("subMenuId");
+
+    if (!products.length) {
+      return res.status(404).json({ message: "No products found" });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching products by menu/submenu:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 module.exports = {
   createProduct,
@@ -276,4 +298,5 @@ module.exports = {
   searchProducts,
   getTrendingProducts,
   getMainpageProductsBySubMenuId,
+  trendingProductsByMenu,
 };
