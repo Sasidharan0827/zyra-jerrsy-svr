@@ -2,7 +2,7 @@ const Product = require("../models/product.model");
 const cloudinary = require("../cloudinary/cloudinary ");
 const fs = require("fs");
 const Menu = require("../models/menu.model");
-
+const mongoose = require("mongoose");
 // Create product (admin only)
 const createProduct = async (req, res) => {
   try {
@@ -237,30 +237,37 @@ const getTrendingProducts = async (req, res) => {
 };
 
 // GET - Products by menuId & isMainpage = true
-const getMainpageProductsBySubMenuId = async (req, res) => {
-  try {
-    const { subMenuId } = req.params; // subMenuId will come from the route
 
-    if (!subMenuId) {
-      return res.status(400).json({ message: "subMenuId is required" });
+const getMainpageProductsByMenuId = async (req, res) => {
+  try {
+    let { menuId } = req.params; // menuId will come from the route
+    menuId = menuId.trim();
+
+    if (!menuId) {
+      return res.status(400).json({ message: "menuId is required" });
+    }
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(menuId)) {
+      return res.status(400).json({ message: "Invalid menuId" });
     }
 
     const products = await Product.find({
-      subMenuId: subMenuId,
+      menuId: menuId,
       isMainpage: true,
-    })
-      .populate("menuId")
-      .populate("subMenuId");
+    });
+    // .populate("menuId")
+    // .populate("subMenuId");
 
     if (!products.length) {
       return res
         .status(404)
-        .json({ message: "No mainpage products found for this submenu" });
+        .json({ message: "No mainpage products found for this menu" });
     }
 
     res.status(200).json(products);
   } catch (error) {
-    console.error("Error fetching mainpage products by submenu:", error);
+    console.error("Error fetching mainpage products by menu:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -296,7 +303,8 @@ module.exports = {
   getProductsByMenu,
   getProductsBySubMenu,
   searchProducts,
+  getMainpageProductsByMenuId,
   getTrendingProducts,
-  getMainpageProductsBySubMenuId,
+
   trendingProductsByMenu,
 };

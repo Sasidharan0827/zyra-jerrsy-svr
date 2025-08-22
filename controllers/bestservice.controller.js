@@ -1,5 +1,6 @@
 const BestService = require("../models/bestservice.model");
-
+const cloudinary = require("../cloudinary/cloudinary ");
+const fs = require("fs");
 // Create a new Best Service
 const createBestService = async (req, res) => {
   try {
@@ -11,7 +12,8 @@ const createBestService = async (req, res) => {
       });
     }
 
-    const imageUrl = req.file?.path; // Multer-Cloudinary gives the image URL here
+    // Multer-Cloudinary gives the image URL directly
+    const imageUrl = req.file?.path;
 
     const newService = new BestService({
       title,

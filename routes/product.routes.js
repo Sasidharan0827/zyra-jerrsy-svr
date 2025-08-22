@@ -13,8 +13,5 @@ router.put("/:id", upload.single("image"), productController.updateProduct);
 router.delete("/:id", productController.deleteProduct);
 router.get("/menu/:menuId", productController.getProductsByMenu);
 router.get("/submenu/:subMenuId", productController.getProductsBySubMenu);
-router.get(
-  "/mainpage/:subMenuId",
-  productController.getMainpageProductsBySubMenuId
-); //mainpage product
+router.get("/mainpage/:menuId", productController.getMainpageProductsByMenuId); //mainpage product
 module.exports = router;
