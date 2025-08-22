@@ -48,25 +48,24 @@ const getAddressById = async (req, res) => {
 };
 
 // Update an address by ID
+
 const updateAddress = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { addressId } = req.params;
 
-    const address = await Address.findOneAndUpdate(
-      { userId }, // find by userId
-      req.body, // update with this body
-      { new: true } // return updated document
+    const updatedAddress = await Address.findByIdAndUpdate(
+      addressId,
+      req.body,
+      { new: true, runValidators: true }
     );
 
-    if (!address) {
-      return res
-        .status(404)
-        .json({ message: "Address not found for this user" });
+    if (!updatedAddress) {
+      return res.status(404).json({ message: "Address not found" });
     }
 
-    res.json(address);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(200).json(updatedAddress);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 

@@ -10,7 +10,7 @@ const menuRoute = require("./menu.routes");
 const bannerRoute = require("./banner.routes");
 const designtemplete = require("./designtemplete.routes");
 const bestService = require("./bestservice.routes");
-
+const cart = require("./cart.routes");
 const vedio = require("./video.routes");
 const authVerify = require("../middlewares/authverify");
 //---------------------//
@@ -25,4 +25,5 @@ router.use("/banners", bannerRoute);
 router.use("/video", vedio);
 router.use("/design", designtemplete);
 router.use("/bestservice", bestService);
+router.use("/cart", authVerify, cart);
 module.exports = router;
