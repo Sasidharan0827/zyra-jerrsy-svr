@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const bestServiceController = require("../controllers/bestservice.controller");
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 // Create Best Service
 router.post(
   "/",

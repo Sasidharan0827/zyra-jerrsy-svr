@@ -1,7 +1,6 @@
 const BestService = require("../models/bestservice.model");
 
 // Create a new Best Service
-// Create Best Service
 const createBestService = async (req, res) => {
   try {
     const { title, description, isActive } = req.body;
