@@ -12,8 +12,9 @@ const {
   getTemplateById,
   updateTemplate,
   deleteTemplate,
+  getTemplatesBySubMenuId,
 } = require("../controllers/designtemplate.controller");
-
+router.get("/:subMenuId", getTemplatesBySubMenuId);
 router.post("/", upload.single("image"), createTemplate);
 router.get("/", getAllTemplates);
 router.get("/:id", getTemplateById);

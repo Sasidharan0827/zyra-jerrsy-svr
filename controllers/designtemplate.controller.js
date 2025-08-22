@@ -4,7 +4,7 @@ const cloudinary = require("../cloudinary/cloudinary ");
 
 const createTemplate = async (req, res) => {
   try {
-    const { name, category } = req.body;
+    const { name, category, subMenuId } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ message: "No image file provided" });
@@ -25,7 +25,8 @@ const createTemplate = async (req, res) => {
     const template = new DesignTemplate({
       name,
       category,
-      imageUrl: uploadResult.secure_url, // Cloudinary URL
+      imageUrl: uploadResult.secure_url,
+      subMenuId, // Cloudinary URL
     });
 
     await template.save();
@@ -71,7 +72,7 @@ const updateTemplate = async (req, res) => {
     const { name, imageUrl, category } = req.body;
     const template = await DesignTemplate.findByIdAndUpdate(
       id,
-      { name, imageUrl, category },
+      { name, imageUrl, category, subMenuId },
       { new: true }
     );
     if (!template)
@@ -98,11 +99,32 @@ const deleteTemplate = async (req, res) => {
       .json({ message: "Error deleting template", error: error.message });
   }
 };
+const getTemplatesBySubMenuId = async (req, res) => {
+  try {
+    const { subMenuId } = req.params;
 
+    const templates = await DesignTemplate.find({ subMenuId });
+
+    if (!templates.length) {
+      return res
+        .status(404)
+        .json({ message: "No templates found for this submenu" });
+    }
+
+    res.status(200).json({
+      message: "Templates fetched successfully",
+      data: templates,
+    });
+  } catch (error) {
+    console.error("Error fetching templates:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 module.exports = {
   createTemplate,
   getAllTemplates,
   getTemplateById,
   updateTemplate,
   deleteTemplate,
+  getTemplatesBySubMenuId,
 };
