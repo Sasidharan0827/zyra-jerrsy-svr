@@ -13,12 +13,13 @@ const bestService = require("./bestservice.routes");
 const cart = require("./cart.routes");
 const vedio = require("./video.routes");
 const authVerify = require("../middlewares/authverify");
+const gallery = require("./gallery.routes");
 //---------------------//
 router.use("/product", product);
 router.use("/image", imageRoute);
 router.use("/auth", auth);
 router.use("/address", authVerify, address);
-
+router.use("/gallery", gallery);
 router.use("/wishlist", authVerify, like);
 router.use("/order", authVerify, order);
 router.use("/menu", menuRoute);

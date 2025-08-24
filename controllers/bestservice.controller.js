@@ -1,24 +1,42 @@
 const BestService = require("../models/bestservice.model");
 const cloudinary = require("../cloudinary/cloudinary ");
 const fs = require("fs");
-// Create a new Best Service
+
+// Create Best Service
 const createBestService = async (req, res) => {
   try {
     const { title, description, isActive } = req.body;
 
+    // Validation
     if (!title || !description) {
       return res.status(400).json({
         message: "Title and description are required",
       });
     }
 
-    // Multer-Cloudinary gives the image URL directly
-    const imageUrl = req.file?.path;
+    let imageUrl = null;
 
+    // If file is uploaded, push it to Cloudinary directly from buffer
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "best-services" }, // optional Cloudinary folder
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(req.file.buffer); // send buffer instead of file path
+      });
+
+      imageUrl = result.secure_url;
+    }
+
+    // Create new service document
     const newService = new BestService({
       title,
       description,
-      isActive: isActive ?? true,
+      isActive: isActive !== undefined ? isActive : true, // default true
       imageUrl,
     });
 
@@ -30,7 +48,7 @@ const createBestService = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating best service:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
