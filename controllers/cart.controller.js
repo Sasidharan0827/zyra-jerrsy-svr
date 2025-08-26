@@ -4,21 +4,64 @@ const Product = require("../models/product.model");
 // ✅ Create Cart
 const createCart = async (req, res) => {
   try {
-    const { userId } = req.params; // take userId from params
-    const { items } = req.body; // items come from body
+    const { userId } = req.params;
+    const { items } = req.body; // [{ productId, quantity }]
 
-    let totalPrice = 0;
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
-      if (!product)
-        return res.status(404).json({ message: "Product not found" });
-      totalPrice += product.price * (item.quantity || 1);
+    // 🛒 Find existing cart for the user
+    let cart = await Cart.findOne({ userId });
+
+    if (!cart) {
+      // If no cart exists, create a new one
+      let totalPrice = 0;
+      const newItems = [];
+
+      for (const item of items) {
+        const product = await Product.findById(item.productId);
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+
+        newItems.push({
+          productId: item.productId,
+          quantity: item.quantity || 1,
+        });
+
+        totalPrice += Number(product.price) * (item.quantity || 1);
+      }
+
+      cart = new Cart({ userId, items: newItems, totalPrice });
+      await cart.save();
+      return res.status(201).json(cart);
     }
 
-    const cart = new Cart({ userId, items, totalPrice });
-    await cart.save();
+    // ✅ If cart already exists → update items
+    for (const newItem of items) {
+      const existingItem = cart.items.find(
+        (item) => item.productId.toString() === newItem.productId
+      );
 
-    res.status(201).json(cart);
+      const product = await Product.findById(newItem.productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      if (existingItem) {
+        // 🔄 Update quantity instead of throwing error
+        existingItem.quantity += newItem.quantity || 1;
+      } else {
+        // ➕ Push new item
+        cart.items.push({
+          productId: newItem.productId,
+          quantity: newItem.quantity || 1,
+        });
+      }
+
+      // 🧮 Recalculate total price
+      cart.totalPrice += Number(product.price) * (newItem.quantity || 1);
+    }
+
+    await cart.save();
+    res.status(200).json(cart);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
