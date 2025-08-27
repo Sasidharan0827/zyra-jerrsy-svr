@@ -222,14 +222,8 @@ const crypto = require("crypto");
 const createOrder = async (req, res) => {
   try {
     const { userId } = req.params;
-    const {
-      products,
-      paymentMethod,
-      address,
-      designPrint,
-      designId,
-      selectedSize,
-    } = req.body;
+    const { products, paymentMethod, address, designPrint, designId } =
+      req.body;
 
     if (!products || products.length === 0) {
       return res.status(400).json({ message: "No products in the order" });
@@ -283,7 +277,6 @@ const createOrder = async (req, res) => {
       products,
       address,
       paymentMethod,
-      selectedSize,
       totalAmount,
       status: "Placed",
       designPrint,
@@ -314,7 +307,6 @@ const verifyPayment = async (req, res) => {
       razorpay_signature,
       userId,
       products,
-      selectedSize,
       address,
       totalAmount,
       designTemplateId,
@@ -377,7 +369,7 @@ const verifyPayment = async (req, res) => {
     const newOrder = new Order({
       userId,
       products,
-      selectedSize,
+
       address,
       paymentMethod: "Online",
       totalAmount,
