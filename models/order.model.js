@@ -14,11 +14,16 @@ const orderSchema = new mongoose.Schema(
           ref: "Product",
           required: true,
         },
-        size: String,
+        size: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Size",
+          required: true,
+        },
         quantity: Number,
         priceAtPurchase: Number,
       },
     ],
+
     designPrint: {
       type: Boolean,
       default: false,
@@ -26,6 +31,10 @@ const orderSchema = new mongoose.Schema(
     designId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "DesignTemplate",
+    },
+    address: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
     },
     totalAmount: Number,
     paymentMethod: {
@@ -35,7 +44,7 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Placed", "Shipped", "Delivered", "Cancelled"],
+      enum: ["Placed", "Shipped", "Out for Delivery", "Delivered", "Cancelled"],
       default: "Placed",
     },
     createdAt: {

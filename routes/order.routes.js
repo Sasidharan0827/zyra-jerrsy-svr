@@ -15,7 +15,7 @@ router.get("/user/:userId", orderController.getOrdersByUser);
 router.get("/", orderController.getAllOrders);
 
 // UPDATE: Update order status
-router.put("/:id", orderController.updateOrderStatus);
+router.put("/:orderId", orderController.updateOrderStatus);
 // DELETE: Delete a specific order for a user
 //
 module.exports = router;
