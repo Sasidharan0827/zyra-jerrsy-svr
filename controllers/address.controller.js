@@ -83,10 +83,27 @@ const deleteAddress = async (req, res) => {
   }
 };
 
+const getAddressByAddressId = async (req, res) => {
+  try {
+    const { AddressId } = req.params;
+
+    const address = await Address.findById(AddressId); // 🔥 correct way
+
+    if (!address) {
+      return res.status(404).json({ message: "Address not found" });
+    }
+
+    res.status(200).json(address);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   createAddress,
   getAllAddresses,
   getAddressById,
   updateAddress,
   deleteAddress,
+  getAddressByAddressId,
 };
